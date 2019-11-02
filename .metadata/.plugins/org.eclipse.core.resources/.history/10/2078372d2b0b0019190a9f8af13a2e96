@@ -1,0 +1,88 @@
+import java.util.Arrays;
+import java.util.Scanner;
+
+public class memo {
+	static int[] items;
+	
+	static int findError(int[] items, int[] bucket) {
+		int[][] arr =  new int[bucket.length][];
+		int[] rep = new int[bucket.length];
+		int error = 0;
+		
+		int n = 0;
+		for(int i = 0; i < bucket.length; i++) {
+			arr[i] = Arrays.copyOfRange(items, n, bucket[i]+1);
+			n = bucket[i]+1;
+		}
+		
+		int sum = 0;
+		for(int i = 0; i < arr.length; i++) {
+			sum = 0;
+			for(int j = 0; j < arr[i].length; j++) {
+				sum += arr[i][j];
+			}
+			rep[i] = sum / arr[i].length;
+		}
+
+		for(int i = 0; i < arr.length; i++) {
+			for(int j = 0; j < arr[i].length; j++) {
+				error += Math.pow(rep[i] - arr[i][j], 2);
+			}
+		}
+		return error;
+	}
+	
+	static int solve(int[] posItems, int[] bucket, int k, int[] memo) {
+		int min = 9999;
+		if(k == 0) {
+			if(bucket[bucket.length-1] == posItems.length-1) {
+				min = findError(items, bucket);
+			}
+			return min;
+		}
+		
+		if(memo[k] != 0) return memo[k];
+		
+		int lastIndex = bucket.length - k - 1;
+		
+		for(int i = 0; i < posItems.length; i++) {
+			if(bucket.length == k) {
+				bucket[0] = posItems[i];
+				int ret = solve(posItems, bucket, k-1, memo);
+				if(min > ret) min = ret;
+			} else if(bucket[lastIndex] < posItems[i]) {
+				bucket[lastIndex+1] = posItems[i];
+				int ret = solve(posItems, bucket, k-1, memo);
+				if(min > ret) min = ret;
+			}
+		}
+
+		memo[k] = min;
+		return memo[k];
+	}
+    
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int num = sc.nextInt();
+        int bucketNum = sc.nextInt();
+        int[] bucket = new int[bucketNum];
+        
+        items = new int[num];
+        for(int i = 0; i < items.length; i++) {
+        	items[i] = sc.nextInt();
+        }
+        
+        Arrays.sort(items);
+        
+        int[] posItems = new int[num];
+        for(int i = 0; i < posItems.length; i++)
+        	posItems[i] = i;
+        
+        int[] memo = new int[bucket.length+1];
+        for(int i = 0; i < memo.length; i++) 
+        	memo[i] = 0;
+        
+        System.out.println(solve(posItems, bucket, bucket.length, memo));
+    }
+
+}
